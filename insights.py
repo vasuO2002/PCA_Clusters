@@ -43,12 +43,13 @@ def calculate_metrics(df, display_desc, start_date, end_date, frequency):
     
     
     retention_rate_per_period = (active_products_per_period - new_products_per_period)/ active_products_per_period.shift(1)
-    
+    existing_products_per_period = active_products_per_period - new_products_per_period
     
     result_df = pd.DataFrame({
         'order_date': new_products_per_period.index,
         'active_products': active_products_per_period.values,
         'new_products': new_products_per_period.values,
+        'existing_products': existing_products_per_period.values,
         'retention_rate': retention_rate_per_period.values
     })
     
@@ -76,6 +77,7 @@ async def cohort_analysis(payload: RequestPayload):
         "order_date": result_df['order_date'].dt.strftime('%Y-%m-%d').tolist(),
         "active_products": result_df['active_products'].tolist(),
         "new_products": result_df['new_products'].tolist(),
+        "existing_products": result_df['existing_products'].tolist(),
         "retention_rate": result_df['retention_rate'].tolist()
     }
     
