@@ -35,13 +35,14 @@ def calculate_metrics(df, display_desc, start_date, end_date, frequency):
         raise HTTPException(status_code=400, detail="Invalid frequency. Supported frequencies are 'daily', 'weekly', and 'monthly'.")
     
     new_products_per_period = resampled_df['product_id'].nunique().diff().fillna(0)
+    print(new_products_per_period)
     new_products_per_period[new_products_per_period < 0] = 0
     
     
     active_products_per_period = resampled_df['product_id'].nunique()
     
     
-    retention_rate_per_period = active_products_per_period / active_products_per_period.shift(1)
+    retention_rate_per_period = (active_products_per_period - new_products_per_period)/ active_products_per_period.shift(1)
     
     
     result_df = pd.DataFrame({
