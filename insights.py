@@ -24,26 +24,33 @@ def calculate_metrics(df, display_desc, start_date, end_date, frequency):
     
     filtered_df = df[(df['display_desc'] == display_desc) & (df['order_date'] >= start_date) & (df['order_date'] <= end_date)]
     
-    
+   
     if frequency == 'daily':
         resampled_df = filtered_df.resample('D', on='order_date')
     elif frequency == 'weekly':
         resampled_df = filtered_df.resample('W-Mon', on='order_date')
     elif frequency == 'monthly':
         resampled_df = filtered_df.resample('M', on='order_date')
+    elif frequency == 'quarterly':
+        resampled_df = filtered_df.resample('Q', on='order_date')
     else:
-        raise HTTPException(status_code=400, detail="Invalid frequency. Supported frequencies are 'daily', 'weekly', and 'monthly'.")
+        raise HTTPException(status_code=400, detail="Invalid frequency. Supported frequencies are 'daily', 'weekly', 'monthly', and 'quarterly'.")
     
+   
     new_products_per_period = resampled_df['product_id'].nunique().diff().fillna(0)
-    print(new_products_per_period)
+    
+   
     new_products_per_period[new_products_per_period < 0] = 0
     
     
     active_products_per_period = resampled_df['product_id'].nunique()
     
     
-    retention_rate_per_period = (active_products_per_period - new_products_per_period)/ active_products_per_period.shift(1)
     existing_products_per_period = active_products_per_period - new_products_per_period
+    
+    
+    retention_rate_per_period = active_products_per_period / active_products_per_period.shift(1)
+    
     
     result_df = pd.DataFrame({
         'order_date': new_products_per_period.index,
